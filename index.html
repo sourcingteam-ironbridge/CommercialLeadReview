@@ -4,530 +4,685 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Candidate Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #fafaf7;
-    --surface: #ffffff;
-    --ink: #1a1a1a;
-    --ink-soft: #5a5a5a;
-    --ink-faint: #9a9a9a;
-    --border: #e6e4dd;
-    --border-strong: #d4d2c8;
-    --approve: #2f7d4f;
-    --approve-bg: #e8f3ec;
-    --reject: #b73a3a;
-    --reject-bg: #f7e8e8;
-    --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+  :root{
+    --paper:#f5efe4;
+    --paper-2:#fbf7ee;
+    --card:#fffdf8;
+    --ink:#211d17;
+    --ink-soft:#5b5247;
+    --ink-faint:#8c8275;
+    --line:#e2d9c8;
+    --line-soft:#ece4d5;
+    --accent:#b4472b;
+    --accent-soft:#f0d9cf;
+    --good:#3f6b4f;
+    --shadow:0 1px 2px rgba(33,29,23,.05),0 8px 24px -12px rgba(33,29,23,.18);
+    --radius:14px;
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg);
-    color: var(--ink);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Hanken Grotesk',sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(circle at 12% -10%, #efe6d4 0%, transparent 45%),
+      radial-gradient(circle at 100% 0%, #f4ecdc 0%, transparent 40%);
+    background-attachment:fixed;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
   }
-  .container {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 32px 24px 120px;
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px}
+
+  /* ---------- Header ---------- */
+  header.masthead{padding:56px 0 28px;border-bottom:1px solid var(--line)}
+  .eyebrow{
+    font-family:'Spline Sans Mono',monospace;
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);font-weight:500;margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;
   }
-  header { margin-bottom: 28px; }
-  h1 {
-    font-family: 'Georgia', serif;
-    font-size: 28px;
-    font-weight: 600;
-    margin: 0 0 6px;
-    letter-spacing: -0.01em;
+  .eyebrow::after{content:"";flex:1;height:1px;background:var(--line)}
+  h1.title{
+    font-family:'Fraunces',serif;font-weight:600;
+    font-size:clamp(38px,6vw,58px);line-height:1.02;letter-spacing:-.02em;
   }
-  .subtitle { color: var(--ink-soft); font-size: 14px; margin: 0; }
-  .progress-card {
-    position: sticky; top: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 18px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow);
-    z-index: 10;
+  .subtitle{margin-top:14px;color:var(--ink-soft);font-size:16.5px;max-width:54ch}
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    position:sticky;top:0;z-index:40;
+    background:rgba(245,239,228,.82);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    margin-top:0;
   }
-  .progress-row {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 10px; font-size: 13px;
+  .toolbar-inner{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:12px 0;
   }
-  .progress-counts { display: flex; gap: 16px; color: var(--ink-soft); }
-  .count-approve { color: var(--approve); font-weight: 500; }
-  .count-reject { color: var(--reject); font-weight: 500; }
-  .progress-bar {
-    height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+  .count{
+    font-family:'Spline Sans Mono',monospace;font-size:12.5px;
+    color:var(--ink-faint);letter-spacing:.04em;
   }
-  .progress-fill {
-    height: 100%; background: var(--ink); width: 0%; transition: width 0.25s ease;
+  .count b{color:var(--ink)}
+  .spacer{flex:1}
+  .reviewer-field{display:flex;align-items:center;gap:8px}
+  .reviewer-field label{
+    font-family:'Spline Sans Mono',monospace;font-size:11px;
+    text-transform:uppercase;letter-spacing:.12em;color:var(--ink-faint);
   }
-  .controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .control-btn {
-    background: var(--surface);
-    border: 1px solid var(--border-strong);
-    color: var(--ink-soft);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    cursor: pointer;
-    font-family: inherit;
+  input.reviewer{
+    font-family:inherit;font-size:14px;color:var(--ink);
+    border:1px solid var(--line);background:var(--paper-2);
+    border-radius:8px;padding:6px 10px;width:140px;
   }
-  .control-btn:hover { background: #f4f2eb; color: var(--ink); }
-  .candidate-list {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
+  input.reviewer:focus{outline:none;border-color:var(--accent);background:#fff}
+  button{
+    font-family:inherit;cursor:pointer;font-size:14px;font-weight:600;
+    border-radius:9px;border:1px solid var(--line);background:var(--card);
+    color:var(--ink);padding:8px 14px;transition:all .15s ease;
+    display:inline-flex;align-items:center;gap:7px;
   }
-  .candidate {
-    display: flex;
-    flex-direction: column;
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--border);
-    gap: 10px;
-    transition: background 0.15s;
+  button:hover{border-color:var(--ink-faint);transform:translateY(-1px)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover{background:#9d3b22;border-color:#9d3b22}
+  button.ghost{background:transparent}
+  button svg{width:15px;height:15px}
+
+  /* ---------- Setup panel ---------- */
+  .setup{
+    overflow:hidden;max-height:0;transition:max-height .35s ease;
+    border-bottom:1px solid var(--line);
   }
-  .candidate-top {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+  .setup.open{max-height:1200px}
+  .setup-inner{padding:26px 0 30px}
+  .setup h2{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin-bottom:6px}
+  .setup p.hint{color:var(--ink-soft);font-size:14.5px;margin-bottom:16px;max-width:60ch}
+  .fmt{
+    font-family:'Spline Sans Mono',monospace;font-size:12.5px;
+    background:var(--paper-2);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;color:var(--ink-soft);white-space:pre-wrap;margin-bottom:16px;
   }
-  .candidate:last-child { border-bottom: none; }
-  .candidate:hover { background: #faf9f5; }
-  .candidate.decided-approve { background: var(--approve-bg); }
-  .candidate.decided-reject { background: var(--reject-bg); }
-  .candidate.current {
-    box-shadow: inset 4px 0 0 var(--ink);
-    background: #f4f2eb;
+  textarea.bulk{
+    width:100%;min-height:200px;resize:vertical;font-family:'Spline Sans Mono',monospace;
+    font-size:13.5px;line-height:1.6;color:var(--ink);
+    border:1px solid var(--line);background:var(--card);border-radius:10px;
+    padding:14px 16px;
   }
-  .candidate.current.decided-approve { background: var(--approve-bg); }
-  .candidate.current.decided-reject { background: var(--reject-bg); }
-  .candidate:focus { outline: none; }
-  .candidate-num {
-    color: var(--ink-faint);
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-    min-width: 28px;
+  textarea.bulk:focus{outline:none;border-color:var(--accent)}
+  .setup-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .embed-box{margin-top:18px;display:none}
+  .embed-box.show{display:block}
+  .embed-box label{
+    font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.12em;color:var(--ink-faint);display:block;margin-bottom:8px;
   }
-  .candidate-info { flex: 1; min-width: 0; }
-  .candidate-name {
-    font-size: 15px;
-    font-weight: 500;
-    margin-bottom: 2px;
+  textarea.embed{
+    width:100%;min-height:140px;font-family:'Spline Sans Mono',monospace;font-size:12px;
+    border:1px solid var(--line);background:#2a251e;color:#e9e1d1;border-radius:10px;
+    padding:14px 16px;line-height:1.5;
   }
-  .candidate-name a {
-    color: var(--ink);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.15s;
+
+  /* ---------- Candidate list ---------- */
+  main{padding:34px 0 90px}
+  .candidate{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);margin-bottom:26px;overflow:hidden;
+    animation:rise .5s ease backwards;
   }
-  .candidate-name a:hover { border-bottom-color: var(--ink-faint); }
-  .candidate-name a::after {
-    content: " ↗";
-    color: var(--ink-faint);
-    font-size: 11px;
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .cand-head{padding:24px 26px 18px;border-bottom:1px solid var(--line-soft);position:relative}
+  .cand-num{
+    font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--accent);
+    letter-spacing:.1em;font-weight:600;
   }
-  .candidate-meta {
-    font-size: 13px;
-    color: var(--ink-soft);
+  .cand-name{font-family:'Fraunces',serif;font-weight:600;font-size:30px;line-height:1.08;letter-spacing:-.01em;margin:4px 0 2px}
+  .cand-role{color:var(--ink-soft);font-size:15.5px;font-weight:500}
+  .fields{padding:18px 26px 4px;display:grid;grid-template-columns:1fr;gap:13px}
+  .field{display:grid;grid-template-columns:140px 1fr;gap:16px;align-items:baseline}
+  .field .k{
+    font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.1em;color:var(--ink-faint);padding-top:2px;
   }
-  .candidate-comment {
-    margin-left: 42px;
-    margin-right: 0;
+  .field .v{font-size:15px;color:var(--ink);line-height:1.5}
+  .field .v a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft)}
+  .field .v a:hover{border-bottom-color:var(--accent)}
+
+  /* ---------- Verdict ---------- */
+  .verdict{position:absolute;top:22px;right:24px;display:flex;gap:8px}
+  .verdict button{
+    padding:7px 16px;font-size:13px;font-weight:600;border-radius:30px;
+    font-family:'Spline Sans Mono',monospace;letter-spacing:.04em;text-transform:uppercase;
+    border:1px solid var(--line);background:var(--paper-2);color:var(--ink-faint);
   }
-  .candidate-comment textarea {
-    width: 100%;
-    min-height: 36px;
-    max-height: 200px;
-    padding: 8px 10px;
-    font-family: inherit;
-    font-size: 13px;
-    line-height: 1.45;
-    color: var(--ink);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    resize: vertical;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    box-sizing: border-box;
+  .verdict button:hover{border-color:var(--ink-faint);color:var(--ink-soft);transform:none}
+  .verdict button.v-yes.on{background:var(--good);border-color:var(--good);color:#fff}
+  .verdict button.v-no.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .candidate.is-yes{border-color:#bcd2c2;box-shadow:0 1px 2px rgba(33,29,23,.05),0 8px 24px -12px rgba(63,107,79,.28)}
+  .candidate.is-no{opacity:.66}
+  .candidate.is-no:hover{opacity:1}
+  @media(max-width:600px){.verdict{position:static;margin-top:12px}}
+
+  /* ---------- Comments ---------- */
+  .comments{padding:8px 26px 24px;margin-top:8px}
+  .comments-head{
+    font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.14em;color:var(--ink-faint);
+    padding:16px 0 12px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:8px;
   }
-  .candidate-comment textarea::placeholder {
-    color: var(--ink-faint);
+  .comments-head .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .comment{
+    background:var(--paper-2);border:1px solid var(--line-soft);border-radius:11px;
+    padding:12px 15px;margin-bottom:10px;position:relative;
   }
-  .candidate-comment textarea:focus {
-    border-color: var(--ink-soft);
-    box-shadow: 0 0 0 3px rgba(26,26,26,0.06);
+  .comment .meta{
+    display:flex;align-items:center;gap:9px;margin-bottom:5px;
+    font-family:'Spline Sans Mono',monospace;font-size:11px;color:var(--ink-faint);
   }
-  .candidate.decided-approve .candidate-comment textarea,
-  .candidate.decided-reject .candidate-comment textarea {
-    background: var(--surface);
+  .comment .meta .who{color:var(--good);font-weight:600}
+  .comment .body{font-size:14.5px;color:var(--ink);white-space:pre-wrap}
+  .comment .del{
+    position:absolute;top:9px;right:10px;border:none;background:none;padding:3px;
+    color:var(--ink-faint);font-size:12px;opacity:0;transition:opacity .15s;
   }
-  .actions { display: flex; gap: 6px; }
-  .btn {
-    width: 38px; height: 38px;
-    border-radius: 8px;
-    border: 1px solid var(--border-strong);
-    background: var(--surface);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-    padding: 0;
+  .comment:hover .del{opacity:1}
+  .comment .del:hover{color:var(--accent);transform:none}
+  .add-row{display:flex;gap:10px;align-items:flex-end;margin-top:6px}
+  textarea.note{
+    flex:1;min-height:54px;resize:vertical;font-family:inherit;font-size:14.5px;
+    border:1px solid var(--line);background:var(--paper-2);border-radius:11px;
+    padding:11px 14px;color:var(--ink);line-height:1.5;
   }
-  .btn svg { width: 18px; height: 18px; }
-  .btn-yes:hover, .btn-yes.active {
-    background: var(--approve);
-    border-color: var(--approve);
+  textarea.note:focus{outline:none;border-color:var(--accent);background:#fff}
+  .empty-note{color:var(--ink-faint);font-size:14px;font-style:italic;padding:2px 0 8px}
+
+  /* ---------- Empty / footer ---------- */
+  .empty-state{text-align:center;padding:70px 20px;color:var(--ink-soft)}
+  .empty-state h3{font-family:'Fraunces',serif;font-weight:600;font-size:26px;color:var(--ink);margin-bottom:8px}
+  footer{padding:30px 0 50px;border-top:1px solid var(--line);text-align:center;color:var(--ink-faint);font-size:13px}
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--paper-2);padding:11px 20px;border-radius:30px;
+    font-size:14px;font-weight:500;opacity:0;transition:all .3s ease;z-index:100;
+    box-shadow:0 10px 30px -8px rgba(0,0,0,.4);pointer-events:none;
   }
-  .btn-yes.active svg { stroke: white; }
-  .btn-no:hover, .btn-no.active {
-    background: var(--reject);
-    border-color: var(--reject);
-  }
-  .btn-no.active svg { stroke: white; }
-  .btn-yes svg { stroke: var(--approve); }
-  .btn-no svg { stroke: var(--reject); }
-  .submit-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--surface);
-    border-top: 1px solid var(--border-strong);
-    padding: 14px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    z-index: 20;
-    box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
-  }
-  .submit-status { font-size: 13px; color: var(--ink-soft); }
-  .submit-btn {
-    background: var(--ink);
-    color: white;
-    border: none;
-    padding: 11px 22px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: inherit;
-    transition: opacity 0.15s;
-  }
-  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .submit-btn:not(:disabled):hover { opacity: 0.85; }
-  .help-text {
-    font-size: 12px;
-    color: var(--ink-faint);
-    margin-top: 12px;
-    text-align: center;
-  }
-  kbd {
-    background: var(--border);
-    border-radius: 3px;
-    padding: 1px 6px;
-    font-family: ui-monospace, monospace;
-    font-size: 11px;
-  }
-  @media (max-width: 600px) {
-    .container { padding: 20px 14px 120px; }
-    .candidate { padding: 14px; }
-    .submit-bar { padding: 12px 14px; }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media(max-width:600px){
+    .field{grid-template-columns:1fr;gap:2px}
+    .reviewer-field{order:3;width:100%}
+    input.reviewer{width:100%;flex:1}
   }
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
-    <h1>Candidate Review</h1>
-    <p class="subtitle">Approve or reject each candidate. Your progress is saved automatically.</p>
-  </header>
 
-  <div class="progress-card">
-    <div class="progress-row">
-      <div><strong id="reviewed-count">0</strong> of <strong id="total-count">0</strong> reviewed</div>
-      <div class="progress-counts">
-        <span class="count-approve">✓ <span id="approve-count">0</span></span>
-        <span class="count-reject">✗ <span id="reject-count">0</span></span>
-      </div>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress-fill"></div>
-    </div>
+<!-- ============================================================ -->
+<!--  EDIT THESE TWO LINES to change the page heading             -->
+<!-- ============================================================ -->
+<script>
+  const PAGE_TITLE = "Candidate Review";
+  const PAGE_SUBTITLE = "Profiles up for consideration. Give each a Yes or No, add any notes, then hit “Email feedback” to send the summary back.";
+  const FEEDBACK_TO = "macdowell.johnston@ironbridgesg.com";
+</script>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Hiring &nbsp;·&nbsp; Internal</div>
+    <h1 class="title" id="pageTitle"></h1>
+    <p class="subtitle" id="pageSubtitle"></p>
   </div>
+</header>
 
-  <div class="controls">
-    <button class="control-btn" id="jump-next">Jump to next unreviewed</button>
-    <button class="control-btn" id="reset-btn">Reset all</button>
+<div class="toolbar">
+  <div class="wrap toolbar-inner">
+    <span class="count"><b id="countNum">0</b> candidates</span>
+    <span class="count" id="tally" style="margin-left:14px"></span>
+    <div class="spacer"></div>
+    <div class="reviewer-field">
+      <label for="reviewer">Your name</label>
+      <input class="reviewer" id="reviewer" placeholder="e.g. Sam" autocomplete="off">
+    </div>
+    <button class="ghost" id="setupBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Add / edit candidates
+    </button>
+    <button class="primary" id="exportBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6.5l9 6 9-6M3 6h18v12H3z"/></svg>
+      Email feedback
+    </button>
   </div>
-
-  <div class="candidate-list" id="candidate-list"></div>
-
-  <p class="help-text">
-    Press <kbd>Y</kbd> to approve, <kbd>N</kbd> to reject. Use <kbd>↑</kbd> <kbd>↓</kbd> to move between candidates. Add a comment in the box below each candidate (optional). Comments are included in the submission email.
-  </p>
 </div>
 
-<div class="submit-bar">
-  <div class="submit-status" id="submit-status">Review all candidates to enable submit</div>
-  <button class="submit-btn" id="submit-btn" disabled>Submit & Email Results</button>
+<div class="setup" id="setupPanel">
+  <div class="wrap setup-inner">
+    <h2>Add or edit candidates</h2>
+    <p class="hint">Paste candidate profiles below. Separate each candidate with a line containing only three dashes (<code>---</code>). Within a candidate, write one field per line as <code>Label: value</code>. The first <code>Name:</code> becomes the heading and <code>Role:</code> the subheading. Links are detected automatically.</p>
+    <div class="fmt">Name: Jane Okafor
+Role: Finance Lead
+Location: London (hybrid)
+Experience: 9 yrs — fintech FP&A, scaled a Series B finance function
+Highlights: Built first finance hire playbook; CIMA qualified
+LinkedIn: https://linkedin.com/in/example
+CV: https://drive.example.com/jane-cv
+---
+Name: Marcus Bell
+Role: Forward-Deployed Engineer
+...</div>
+    <textarea class="bulk" id="bulkInput" placeholder="Paste your candidates here…"></textarea>
+    <div class="setup-actions">
+      <button class="primary" id="loadBtn">Load candidates</button>
+      <button class="ghost" id="embedBtn">Generate embed code for GitHub →</button>
+      <button class="ghost" id="clearBtn">Clear saved data</button>
+    </div>
+    <div class="embed-box" id="embedBox">
+      <label>Paste this into index.html (replace the <code>EMBEDDED_CANDIDATES</code> block) so your co-founder sees the same candidates on the live page:</label>
+      <textarea class="embed" id="embedOut" readonly></textarea>
+      <div style="margin-top:10px"><button id="copyEmbed">Copy code</button></div>
+    </div>
+  </div>
 </div>
+
+<main>
+  <div class="wrap" id="list"></div>
+</main>
+
+<footer>
+  <div class="wrap">Comments are stored locally in this browser. Use “Export comments” to save or share them.</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============================================================ -->
+<!--  EMBEDDED_CANDIDATES  — replace the sample data below with    -->
+<!--  your own (or paste via the panel and use "Generate embed")   -->
+<!-- ============================================================ -->
+<script id="candidate-data" type="application/json">
+[
+  {
+    "Name": "Mark Baker-Steljes",
+    "Role": "Senior Sales Director",
+    "Company": "Algosec",
+    "LinkedIn": "https://www.linkedin.com/in/markbaker87"
+  },
+  {
+    "Name": "Richard S",
+    "Role": "BD/Sales Professional",
+    "Company": "Attensi",
+    "LinkedIn": "https://www.linkedin.com/in/richardsenger"
+  },
+  {
+    "Name": "Christos Sarros",
+    "Role": "VP Sales",
+    "Company": "Diligent",
+    "LinkedIn": "https://www.linkedin.com/in/sarrosc"
+  },
+  {
+    "Name": "Kobus du Rand",
+    "Role": "Head of Strategic Sales",
+    "Company": "Miro",
+    "LinkedIn": "https://www.linkedin.com/in/kobus-du-rand-bb22a556"
+  },
+  {
+    "Name": "Joseph Kovacs",
+    "Role": "VP Sales & Partnerships",
+    "Company": "Arcesium",
+    "LinkedIn": "https://www.linkedin.com/in/jo3box3r"
+  },
+  {
+    "Name": "Anupam Prakash",
+    "Role": "VP - Client Engagement (Head of New Sales)",
+    "Company": "Coforge",
+    "LinkedIn": "https://www.linkedin.com/in/anprakash"
+  },
+  {
+    "Name": "Henrietta Tamas-Szora",
+    "Role": "Sales Director",
+    "Company": "Orbus Software",
+    "LinkedIn": "https://www.linkedin.com/in/henriettatsz"
+  },
+  {
+    "Name": "Will Jackson",
+    "Role": "Head of Sales",
+    "Company": "32Co",
+    "LinkedIn": "https://www.linkedin.com/in/willjackson123"
+  },
+  {
+    "Name": "Puneet Ramaul",
+    "Role": "Sales Director",
+    "Company": "HCLSoftware",
+    "LinkedIn": "https://www.linkedin.com/in/ramaulp"
+  },
+  {
+    "Name": "Andrew Taggart",
+    "Role": "Director, Head of Growth",
+    "Company": "Devoteam",
+    "LinkedIn": "https://www.linkedin.com/in/andrewtaggart1"
+  },
+  {
+    "Name": "Anisa Cader",
+    "Role": "Sales Director",
+    "Company": "RiskXchange",
+    "LinkedIn": "https://www.linkedin.com/in/anisa-cader-8ab105196"
+  },
+  {
+    "Name": "Zulfiya Merchant",
+    "Role": "Sales & Channel Leader",
+    "Company": "AWS",
+    "LinkedIn": "https://www.linkedin.com/in/zulfiyamerchant"
+  },
+  {
+    "Name": "Harry Back",
+    "Role": "Sales Director",
+    "Company": "LIVE STORY",
+    "LinkedIn": "https://www.linkedin.com/in/harryback"
+  },
+  {
+    "Name": "Lewis James Gearing",
+    "Role": "AI Commercial Director",
+    "Company": "Version 1",
+    "LinkedIn": "https://www.linkedin.com/in/lewis-james-gearing-626899109"
+  },
+  {
+    "Name": "Chuk Ibeh",
+    "Role": "GTM Lead",
+    "Company": "Engineering Insights",
+    "LinkedIn": "https://www.linkedin.com/in/chukibeh"
+  },
+  {
+    "Name": "Anna Ivanova",
+    "Role": "Sales Director",
+    "Company": "Espire Infolabs",
+    "LinkedIn": "https://www.linkedin.com/in/annja"
+  },
+  {
+    "Name": "Abhijeet Malan",
+    "Role": "VP Sales",
+    "Company": "Genpact",
+    "LinkedIn": "https://www.linkedin.com/in/abhijeetmalan"
+  },
+  {
+    "Name": "Farshad Ashrafe",
+    "Role": "Sales Director",
+    "Company": "Service Channel",
+    "LinkedIn": "https://www.linkedin.com/in/farshad-ashrafe-a364139a"
+  },
+  {
+    "Name": "Arek Konieczny",
+    "Role": "Senior Sales Director, Head of EMEA AI Customer Excellence Center",
+    "Company": "Oracle",
+    "LinkedIn": "https://www.linkedin.com/in/arek-konieczny"
+  },
+  {
+    "Name": "Wissam Lebsir",
+    "Role": "Head of Sales",
+    "Company": "Mixpanel",
+    "LinkedIn": "https://www.linkedin.com/in/wissam-lebsir-32311162"
+  }
+]
+</script>
 
 <script>
-  const CANDIDATES = [{"name": "Aslan Sissekenov", "linkedin": "https://www.linkedin.com/in/aslan-sissekenov", "position": "Finance", "company": "Bending Spoons"}, {"name": "Josh Cesman CA (SA)", "linkedin": "https://www.linkedin.com/in/josh-cesman-ca-sa-04bb5453", "position": "Finance Director", "company": "Oneday"}, {"name": "Hasit D.", "linkedin": "https://www.linkedin.com/in/hasitdedhia", "position": "Finance Director", "company": "Scissero"}, {"name": "Pauline Vezinet", "linkedin": "https://www.linkedin.com/in/paulinevezinet", "position": "VP Finance", "company": "Corti"}, {"name": "Louise Burt", "linkedin": "https://www.linkedin.com/in/burtlouise", "position": "Head of Finance Operations", "company": "Cleo"}, {"name": "Jenny Begum", "linkedin": "https://www.linkedin.com/in/jenny-begum-44817878", "position": "Finance Operations Manager", "company": "IIED"}, {"name": "Laura Coulson", "linkedin": "https://www.linkedin.com/in/laurajane-coulson", "position": "Finance & Operations Manager", "company": "Notabout Marketing"}, {"name": "Tom Barugh", "linkedin": "https://www.linkedin.com/in/tom-barugh-391728a7", "position": "Finance Director", "company": "Robin AI"}, {"name": "Ben Baldry", "linkedin": "https://www.linkedin.com/in/ben-baldry-acma-cgma-15566045", "position": "Director of Finance & Commercial Operations", "company": "The Future Laboratory"}, {"name": "Oscar Charles", "linkedin": "https://www.linkedin.com/in/oscar-charles-aca-6214b1123", "position": "Director of Finance & Operations", "company": "NLPatent"}, {"name": "Beata Jakubowska", "linkedin": "https://www.linkedin.com/in/beata-jakubowska-2a5352131", "position": "FP&A Lead", "company": "Speechmatics"}];
-  const EMAIL_TO = "macdowell.johnston@ironbridgesg.com";
-  const STORAGE_KEY = "candidate_review_v3";
+/* ---------------- Safe storage (works on GitHub Pages AND in sandboxed previews) ---------------- */
+const mem = {};
+const store = {
+  get(k){ try { const v = localStorage.getItem(k); return v===null ? (k in mem ? mem[k] : null) : v; } catch(e){ return k in mem ? mem[k] : null; } },
+  set(k,v){ mem[k]=v; try { localStorage.setItem(k,v); } catch(e){} },
+  del(k){ delete mem[k]; try { localStorage.removeItem(k); } catch(e){} }
+};
 
-  let decisions = {};
-  let comments = {};
-  let currentIndex = 0;
+const K_COMMENTS = "cf_comments_v1";
+const K_CANDS = "cf_candidates_v1";
+const K_REVIEWER = "cf_reviewer_v1";
+const K_VERDICTS = "cf_verdicts_v1";
 
-  function loadState() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        decisions = parsed.decisions || {};
-        comments = parsed.comments || {};
-      }
-    } catch (e) { decisions = {}; comments = {}; }
-  }
+/* ---------------- Helpers ---------------- */
+const $ = s => document.querySelector(s);
+function slug(s){ return (s||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function isUrl(s){ return /^https?:\/\/\S+$/i.test(String(s).trim()); }
+function linkify(v){
+  v = String(v);
+  if(isUrl(v)) return `<a href="${esc(v)}" target="_blank" rel="noopener">${esc(v.replace(/^https?:\/\//,""))}</a>`;
+  return esc(v);
+}
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2200); }
 
-  function saveState() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ decisions, comments }));
-    } catch (e) {}
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    })[c]);
-  }
-
-  function candidateKey(c) { return c.linkedin || c.name; }
-
-  function render() {
-    const list = document.getElementById('candidate-list');
-    list.innerHTML = '';
-    CANDIDATES.forEach((c, i) => {
-      const key = candidateKey(c);
-      const decision = decisions[key];
-      const row = document.createElement('div');
-      row.className = 'candidate' + (decision === 'approve' ? ' decided-approve' : decision === 'reject' ? ' decided-reject' : '');
-      row.id = 'candidate-' + i;
-
-      const metaParts = [];
-      if (c.position) metaParts.push(c.position);
-      if (c.company) metaParts.push(c.company);
-      const metaText = metaParts.join(' · ');
-
-      row.innerHTML = `
-        <div class="candidate-top">
-          <div class="candidate-num">${i + 1}.</div>
-          <div class="candidate-info">
-            <div class="candidate-name"><a href="${escapeHtml(c.linkedin)}" target="_blank" rel="noopener">${escapeHtml(c.name)}</a></div>
-            ${metaText ? `<div class="candidate-meta">${escapeHtml(metaText)}</div>` : ''}
-          </div>
-          <div class="actions">
-            <button class="btn btn-yes ${decision === 'approve' ? 'active' : ''}" data-idx="${i}" data-action="approve" title="Approve (Y)" aria-label="Approve">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
-            <button class="btn btn-no ${decision === 'reject' ? 'active' : ''}" data-idx="${i}" data-action="reject" title="Reject (N)" aria-label="Reject">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="candidate-comment">
-          <textarea data-idx="${i}" placeholder="Add a comment (optional)" rows="1">${escapeHtml(comments[key] || '')}</textarea>
-        </div>
-      `;
-      list.appendChild(row);
-    });
-    updateProgress();
-  }
-
-  function updateProgress() {
-    const total = CANDIDATES.length;
-    const approveCount = Object.values(decisions).filter(v => v === 'approve').length;
-    const rejectCount = Object.values(decisions).filter(v => v === 'reject').length;
-    const reviewed = approveCount + rejectCount;
-    document.getElementById('total-count').textContent = total;
-    document.getElementById('reviewed-count').textContent = reviewed;
-    document.getElementById('approve-count').textContent = approveCount;
-    document.getElementById('reject-count').textContent = rejectCount;
-    document.getElementById('progress-fill').style.width = (reviewed / total * 100) + '%';
-    const submitBtn = document.getElementById('submit-btn');
-    const status = document.getElementById('submit-status');
-    if (reviewed === total) {
-      submitBtn.disabled = false;
-      status.textContent = `All ${total} reviewed — ready to submit`;
-    } else {
-      submitBtn.disabled = true;
-      status.textContent = `${total - reviewed} remaining`;
+/* ---------------- Parse pasted bulk text into candidate objects ---------------- */
+function parseBulk(text){
+  const blocks = text.split(/^\s*---\s*$/m).map(b=>b.trim()).filter(Boolean);
+  const out = [];
+  for(const block of blocks){
+    const obj = {}; let lastKey = null;
+    for(const raw of block.split(/\r?\n/)){
+      const line = raw.trimEnd();
+      const m = line.match(/^([A-Za-z][\w \/&.-]{0,40}):\s*(.*)$/);
+      if(m){ lastKey = m[1].trim(); obj[lastKey] = m[2].trim(); }
+      else if(lastKey && line.trim()){ obj[lastKey] += "\n" + line.trim(); }
     }
+    if(Object.keys(obj).length) out.push(obj);
   }
+  return out;
+}
 
-  function setDecision(idx, action) {
-    const c = CANDIDATES[idx];
-    const key = candidateKey(c);
-    if (decisions[key] === action) {
-      delete decisions[key];
-    } else {
-      decisions[key] = action;
-    }
-    saveState();
-    const row = document.getElementById('candidate-' + idx);
-    row.classList.remove('decided-approve', 'decided-reject');
-    if (decisions[key] === 'approve') row.classList.add('decided-approve');
-    if (decisions[key] === 'reject') row.classList.add('decided-reject');
-    row.querySelectorAll('.btn').forEach(b => {
-      const isActive = b.dataset.action === decisions[key];
-      b.classList.toggle('active', isActive);
-    });
-    updateProgress();
-  }
-
-  function setCurrent(index, scroll = true) {
-    if (index < 0) index = 0;
-    if (index >= CANDIDATES.length) index = CANDIDATES.length - 1;
-    currentIndex = index;
-    document.querySelectorAll('.candidate.current').forEach(el => el.classList.remove('current'));
-    const row = document.getElementById('candidate-' + currentIndex);
-    if (row) {
-      row.classList.add('current');
-      if (scroll) {
-        const rect = row.getBoundingClientRect();
-        const inView = rect.top >= 80 && rect.bottom <= window.innerHeight - 80;
-        if (!inView) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  }
-
-  function advanceToNextUnreviewed() {
-    for (let i = currentIndex + 1; i < CANDIDATES.length; i++) {
-      if (!decisions[candidateKey(CANDIDATES[i])]) { setCurrent(i); return; }
-    }
-    for (let i = 0; i < currentIndex; i++) {
-      if (!decisions[candidateKey(CANDIDATES[i])]) { setCurrent(i); return; }
-    }
-    setCurrent(currentIndex + 1);
-  }
-
-  function jumpToNextUnreviewed() {
-    const next = CANDIDATES.findIndex(c => !decisions[candidateKey(c)]);
-    if (next >= 0) setCurrent(next);
-  }
-
-  function buildEmailBody() {
-    const approved = CANDIDATES.filter(c => decisions[candidateKey(c)] === 'approve');
-    const rejected = CANDIDATES.filter(c => decisions[candidateKey(c)] === 'reject');
-    const date = new Date().toLocaleString();
-    const formatEntry = (c, i) => {
-      const meta = [c.position, c.company].filter(Boolean).join(' · ');
-      const comment = (comments[candidateKey(c)] || '').trim();
-      let entry = `${i + 1}. ${c.name}${meta ? ' — ' + meta : ''}\n   ${c.linkedin}\n`;
-      if (comment) entry += `   Comment: ${comment}\n`;
-      return entry;
-    };
-    let body = `Candidate Review Results\n`;
-    body += `Submitted: ${date}\n`;
-    body += `Total reviewed: ${approved.length + rejected.length} of ${CANDIDATES.length}\n`;
-    body += `\n`;
-    body += `========================================\n`;
-    body += `APPROVED (${approved.length})\n`;
-    body += `========================================\n`;
-    approved.forEach((c, i) => { body += formatEntry(c, i); });
-    body += `\n`;
-    body += `========================================\n`;
-    body += `REJECTED (${rejected.length})\n`;
-    body += `========================================\n`;
-    rejected.forEach((c, i) => { body += formatEntry(c, i); });
-    return body;
-  }
-
-  function submit() {
-    const subject = `Candidate Review — ${new Date().toLocaleDateString()}`;
-    const body = buildEmailBody();
-    const mailto = `mailto:${EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailto;
-  }
-
-  document.getElementById('candidate-list').addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn');
-    if (btn) {
-      setDecision(parseInt(btn.dataset.idx), btn.dataset.action);
-      return;
-    }
-    if (e.target.closest('a')) return;
-    if (e.target.tagName === 'TEXTAREA') return;
-    const row = e.target.closest('.candidate');
-    if (!row) return;
-    const idx = parseInt(row.id.replace('candidate-', ''));
-    if (!isNaN(idx)) setCurrent(idx, false);
-  });
-
-  // Save comment as the user types (debounced lightly via input event)
-  document.getElementById('candidate-list').addEventListener('input', (e) => {
-    if (e.target.tagName !== 'TEXTAREA') return;
-    const idx = parseInt(e.target.dataset.idx);
-    if (isNaN(idx)) return;
-    const key = candidateKey(CANDIDATES[idx]);
-    const val = e.target.value;
-    if (val.trim()) {
-      comments[key] = val;
-    } else {
-      delete comments[key];
-    }
-    saveState();
-  });
-
-  // When a textarea is focused, set that row as current (without scrolling)
-  document.getElementById('candidate-list').addEventListener('focusin', (e) => {
-    if (e.target.tagName !== 'TEXTAREA') return;
-    const idx = parseInt(e.target.dataset.idx);
-    if (!isNaN(idx)) setCurrent(idx, false);
-  });
-
-  document.getElementById('submit-btn').addEventListener('click', submit);
-  document.getElementById('jump-next').addEventListener('click', jumpToNextUnreviewed);
-  document.getElementById('reset-btn').addEventListener('click', () => {
-    if (confirm('Clear all decisions and comments? This cannot be undone.')) {
-      decisions = {};
-      comments = {};
-      saveState();
-      render();
-      setCurrent(0, false);
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const key = e.key.toLowerCase();
-    if (key === 'y') {
-      e.preventDefault();
-      setDecision(currentIndex, 'approve');
-      advanceToNextUnreviewed();
-    } else if (key === 'n') {
-      e.preventDefault();
-      setDecision(currentIndex, 'reject');
-      advanceToNextUnreviewed();
-    } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || key === 'j') {
-      e.preventDefault();
-      setCurrent(currentIndex + 1);
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || key === 'k') {
-      e.preventDefault();
-      setCurrent(currentIndex - 1);
-    }
-  });
-
-  loadState();
+/* ---------------- Load candidates: prefer saved, fall back to embedded ---------------- */
+function getCandidates(){
+  const saved = store.get(K_CANDS);
+  if(saved){ try { const a = JSON.parse(saved); if(Array.isArray(a) && a.length) return a; } catch(e){} }
+  try { return JSON.parse($("#candidate-data").textContent) || []; } catch(e){ return []; }
+}
+function getComments(){ try { return JSON.parse(store.get(K_COMMENTS)) || {}; } catch(e){ return {}; } }
+function getVerdicts(){ try { return JSON.parse(store.get(K_VERDICTS)) || {}; } catch(e){ return {}; } }
+function setVerdict(id, val){
+  const v = getVerdicts();
+  if(v[id] === val) delete v[id]; else v[id] = val;   // tapping the active one clears it
+  store.set(K_VERDICTS, JSON.stringify(v));
   render();
-  const firstUnreviewed = CANDIDATES.findIndex(c => !decisions[candidateKey(c)]);
-  setCurrent(firstUnreviewed >= 0 ? firstUnreviewed : 0, false);
+}
+function saveComments(c){ store.set(K_COMMENTS, JSON.stringify(c)); }
+
+let CANDIDATES = [];
+
+/* ---------------- Render ---------------- */
+function candId(c, i){ return slug(c.Name || c.name || ("candidate-"+i)) || ("candidate-"+i); }
+
+function render(){
+  CANDIDATES = getCandidates();
+  const comments = getComments();
+  const verdicts = getVerdicts();
+  const list = $("#list");
+  $("#countNum").textContent = CANDIDATES.length;
+
+  let yes=0,no=0;
+  CANDIDATES.forEach((c,i)=>{ const v=verdicts[candId(c,i)]; if(v==="yes")yes++; else if(v==="no")no++; });
+  $("#tally").innerHTML = `<b style="color:var(--good)">${yes}</b> yes &nbsp;·&nbsp; <b style="color:var(--accent)">${no}</b> no`;
+
+  if(!CANDIDATES.length){
+    list.innerHTML = `<div class="empty-state"><h3>No candidates yet</h3><p>Open “Add / edit candidates” above and paste in some profiles to get started.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = CANDIDATES.map((c, i) => {
+    const id = candId(c, i);
+    const name = c.Name || c.name || "Unnamed candidate";
+    const role = c.Role || c.role || "";
+    const skip = new Set(["Name","name","Role","role"]);
+    const fields = Object.keys(c).filter(k => !skip.has(k) && String(c[k]).trim() !== "");
+    const fieldHtml = fields.map(k => `
+      <div class="field"><div class="k">${esc(k)}</div><div class="v">${linkify(c[k])}</div></div>`).join("");
+
+    const cmts = comments[id] || [];
+    const cmtHtml = cmts.length
+      ? cmts.map((m, ci) => `
+        <div class="comment">
+          <div class="meta"><span class="who">${esc(m.author||"Anon")}</span><span>·</span><span>${esc(m.date||"")}</span></div>
+          <div class="body">${esc(m.text)}</div>
+          <button class="del" data-id="${id}" data-i="${ci}" title="Delete">Delete</button>
+        </div>`).join("")
+      : `<div class="empty-note">No comments yet.</div>`;
+
+    const verdict = verdicts[id] || "";
+    const stateClass = verdict === "yes" ? " is-yes" : verdict === "no" ? " is-no" : "";
+
+    return `
+    <article class="candidate${stateClass}" style="animation-delay:${i*60}ms">
+      <div class="cand-head">
+        <div class="cand-num">${String(i+1).padStart(2,"0")}</div>
+        <div class="cand-name">${esc(name)}</div>
+        ${role ? `<div class="cand-role">${esc(role)}</div>` : ""}
+        <div class="verdict">
+          <button class="v-yes${verdict==="yes"?" on":""}" data-id="${id}" data-v="yes">Yes</button>
+          <button class="v-no${verdict==="no"?" on":""}" data-id="${id}" data-v="no">No</button>
+        </div>
+      </div>
+      <div class="fields">${fieldHtml}</div>
+      <div class="comments">
+        <div class="comments-head"><span class="dot"></span>Comments</div>
+        <div class="cmt-list">${cmtHtml}</div>
+        <div class="add-row">
+          <textarea class="note" data-id="${id}" placeholder="Add a note on ${esc(name)}…"></textarea>
+          <button class="primary add-cmt" data-id="${id}">Add</button>
+        </div>
+      </div>
+    </article>`;
+  }).join("");
+
+  wireCards();
+}
+
+function wireCards(){
+  document.querySelectorAll(".add-cmt").forEach(btn=>{
+    btn.onclick = () => addComment(btn.dataset.id);
+  });
+  document.querySelectorAll(".note").forEach(t=>{
+    t.addEventListener("keydown", e=>{
+      if((e.metaKey||e.ctrlKey) && e.key==="Enter"){ addComment(t.dataset.id); }
+    });
+  });
+  document.querySelectorAll(".comment .del").forEach(b=>{
+    b.onclick = () => delComment(b.dataset.id, parseInt(b.dataset.i,10));
+  });
+  document.querySelectorAll(".verdict button").forEach(b=>{
+    b.onclick = () => setVerdict(b.dataset.id, b.dataset.v);
+  });
+}
+
+function addComment(id){
+  const ta = document.querySelector(`.note[data-id="${id}"]`);
+  const text = (ta.value||"").trim();
+  if(!text){ ta.focus(); return; }
+  const author = ($("#reviewer").value||"").trim() || "Anonymous";
+  const date = new Date().toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});
+  const comments = getComments();
+  (comments[id] = comments[id] || []).push({ text, author, date, ts: Date.now() });
+  saveComments(comments);
+  ta.value = "";
+  render();
+  toast("Comment saved");
+}
+
+function delComment(id, i){
+  const comments = getComments();
+  if(comments[id]){ comments[id].splice(i,1); if(!comments[id].length) delete comments[id]; saveComments(comments); render(); }
+}
+
+/* ---------------- Email feedback ---------------- */
+function buildFeedbackText(){
+  const comments = getComments();
+  const verdicts = getVerdicts();
+  const reviewer = ($("#reviewer").value||"").trim();
+
+  const yes=[], no=[], undecided=[];
+  CANDIDATES.forEach((c,i)=>{
+    const id = candId(c,i);
+    const label = `${c.Name||c.name||"Candidate"}${c.Role?` — ${c.Role}`:""}${c.Company?` (${c.Company})`:""}`;
+    const note = (comments[id]||[]).map(m=>m.text.replace(/\n/g," ")).join(" / ");
+    const line = note ? `${label}\n    Notes: ${note}` : label;
+    const v = verdicts[id];
+    if(v==="yes") yes.push(line);
+    else if(v==="no") no.push(line);
+    else undecided.push(label);
+  });
+
+  let b = `Hi,\n\nHere's my feedback on the candidate shortlist${reviewer?` (${reviewer})`:""}.\n\n`;
+  b += `YES (${yes.length}):\n` + (yes.length ? yes.map(l=>`  • ${l}`).join("\n") : "  —") + "\n\n";
+  b += `NO (${no.length}):\n` + (no.length ? no.map(l=>`  • ${l}`).join("\n") : "  —") + "\n\n";
+  if(undecided.length) b += `NOT YET REVIEWED (${undecided.length}):\n` + undecided.map(l=>`  • ${l}`).join("\n") + "\n\n";
+  b += reviewer ? `Thanks,\n${reviewer}` : "Thanks";
+  return b;
+}
+
+function emailFeedback(){
+  const reviewer = ($("#reviewer").value||"").trim();
+  const subject = `Candidate feedback${reviewer?` — ${reviewer}`:""}`;
+  const body = buildFeedbackText();
+
+  // Copy to clipboard as a reliable fallback regardless of mail client behaviour
+  try { navigator.clipboard && navigator.clipboard.writeText(body); } catch(e){}
+
+  const href = `mailto:${FEEDBACK_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  // Long mailto bodies can exceed some clients' limits; warn + rely on the clipboard copy if so.
+  if(href.length > 1900){
+    toast("Feedback copied to clipboard — paste it into your email");
+  } else {
+    toast("Opening your email app… (also copied to clipboard)");
+  }
+  window.location.href = href;
+}
+
+/* ---------------- Setup panel actions ---------------- */
+$("#setupBtn").onclick = () => $("#setupPanel").classList.toggle("open");
+
+$("#loadBtn").onclick = () => {
+  const text = $("#bulkInput").value.trim();
+  if(!text){ toast("Paste some candidates first"); return; }
+  const cands = parseBulk(text);
+  if(!cands.length){ toast("Couldn't parse any candidates"); return; }
+  store.set(K_CANDS, JSON.stringify(cands));
+  render();
+  $("#setupPanel").classList.remove("open");
+  toast(`${cands.length} candidate${cands.length>1?"s":""} loaded`);
+};
+
+$("#embedBtn").onclick = () => {
+  const text = $("#bulkInput").value.trim();
+  const cands = text ? parseBulk(text) : getCandidates();
+  if(!cands.length){ toast("Nothing to embed yet"); return; }
+  const json = JSON.stringify(cands, null, 2);
+  $("#embedOut").value =
+`<script id="candidate-data" type="application/json">
+${json}
+<\/script>`;
+  $("#embedBox").classList.add("show");
+};
+
+$("#copyEmbed").onclick = () => {
+  const el = $("#embedOut"); el.select();
+  try { navigator.clipboard ? navigator.clipboard.writeText(el.value).then(()=>toast("Copied")) : (document.execCommand("copy"), toast("Copied")); }
+  catch(e){ document.execCommand("copy"); toast("Copied"); }
+};
+
+$("#clearBtn").onclick = () => {
+  store.del(K_CANDS);
+  render();
+  toast("Reverted to embedded candidates");
+};
+
+$("#exportBtn").onclick = emailFeedback;
+
+/* reviewer name persistence */
+const rev = $("#reviewer");
+rev.value = store.get(K_REVIEWER) || "";
+rev.addEventListener("input", ()=> store.set(K_REVIEWER, rev.value));
+
+/* ---------------- Init ---------------- */
+$("#pageTitle").textContent = PAGE_TITLE;
+$("#pageSubtitle").textContent = PAGE_SUBTITLE;
+render();
 </script>
 </body>
 </html>
